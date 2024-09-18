@@ -10,7 +10,7 @@ public_users.post("/register", (req,res) => {
     const password = req.body.password;
 
     if(username && password) {
-        const userExists = users.some((user) => user.username === username);
+        const userExists = isValid(username);
         if(!userExists){
             const user = {
                 username: username,
