@@ -25,10 +25,10 @@ regd_users.post("/login", (req,res) => {
     if(username && password) {
         const user = authenticatedUser(username, password);
         if(user){
-            const token = jwt.sign(payload= {
+            res.send("Logged in successfully!");
+            return token = jwt.sign(payload= {
                                     username: username
                                 }, "accessToken", {expiresIn: '1h'});
-            res.send("Logged in successfully!");
         } else {
             res.status(403).json({message: "Invalid Credentials"});
         }
@@ -38,26 +38,8 @@ regd_users.post("/login", (req,res) => {
 
 });
 
-function authenticateToken(req, res, next) {
-    const authHeader = req.header['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if(token == null) {
-        return res.sendStatus(401);
-    } else {
-        jwt.verify(token, "accessToken", (err, user) => {
-            if(!err){
-                req.user = user;
-                next();
-            } else {
-                return res.sendStatus(403);
-            }
-        })
-    }
-}
-
 // Add a book review
-regd_users.put("/auth/review/:isbn", authenticateToken, (req, res) => {
+regd_users.put("/auth/review/:isbn", (req, res) => {
     const isbn = req.params.isbn;
     const book = books[isbn];
     const bookReview = books[isbn].reviews;
@@ -65,8 +47,16 @@ regd_users.put("/auth/review/:isbn", authenticateToken, (req, res) => {
     const username = req.user.username;
 
     if(book) {
-        
+        if(review) {
+            bookReview[username] = review;
+            
+            res.send.json({message: "Review submitted successfully!", review: bookReview});
+        } else {
+            res.status(400).json({message: "Review must be provided"});
+        }
 
+    } else {
+        res.status(404).json({message: "Book not found"});
     }
 
 });
