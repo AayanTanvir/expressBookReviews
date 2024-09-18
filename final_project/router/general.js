@@ -29,16 +29,15 @@ public_users.get('/isbn/:isbn',function (req, res) {
   
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
-    const author = req.params.author;
-    const book = books.filter((books) => {
-        return books.author === author;
-    })
-
-    if(book) {
-        res.send(JSON.stringify(book, null, 4));
-    } else {
-        res.status(404).json({message: "the author does not exist"});
+    const author = req.params.author.trim();
+    for(let key in books) {
+        const bookAuthor = books[key].author.replace(/\s+/g, '');
+        if(bookAuthor === author.replace(/\s+/g, '')) {
+            return res.json(books[key]);
+        }
     }
+    return res.status(404).json({message: "author not found"});
+
 });
 
 // Get all books based on title
