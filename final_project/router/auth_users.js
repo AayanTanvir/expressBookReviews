@@ -6,14 +6,30 @@ const regd_users = express.Router();
 let users = [];
 
 const isValid = (username)=>{ //returns boolean
-    const available = users.some((user) => user.username !== username);
-    return available;
+    let usersWithSameName = users.filter((user) => {
+        return user.username === username;
+    });
+
+    if(usersWithSameName.length > 0) {
+        return true;
+    } else {
+        return false;
+    }
+
 }
 
 const authenticatedUser = (username,password)=>{ //returns boolean
 //write code to check if username and password match the one we have in records.
-    const isAuthenticated = users.some((user) => user.username === username && user.password === password);
-    return isAuthenticated;
+    let authenticatedUsers = users.filter((user) => {
+        return user.username === username && user.password === password;
+    });
+
+    if(authenticatedUsers.length > 0){
+        return true;
+    } else {
+        return false;
+    }
+
 }
 
 
@@ -23,17 +39,20 @@ regd_users.post("/login", (req,res) => {
     const password = req.body.password;
 
     if(username && password) {
-        const user = authenticatedUser(username, password);
+        let user = authenticatedUser(username, password);
         if(user){
-            res.send("Logged in successfully!");
-            return token = jwt.sign(payload= {
-                                    username: username
-                                }, "accessToken", {expiresIn: '1h'});
+            const accessToken = jwt.sign({data: password}, 'access', {expiresIn: 60 * 60});
+            req.session.authorization = {
+                accessToken,
+                username
+            }
         } else {
-            res.status(403).json({message: "Invalid Credentials"});
+            return res.status(403).send("Invalid Credentials");
         }
+
+        return res.status(200).send("Logged in successfully!");
     } else {
-        res.status(404).json({message: "username and password not provided"});
+        return res.status(404).json({message: "username and password not provided"});
     }
 
 });
@@ -41,22 +60,20 @@ regd_users.post("/login", (req,res) => {
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
     const isbn = req.params.isbn;
-    const book = books[isbn];
     const bookReview = books[isbn].reviews;
     const review = req.query.review;
     const username = req.user.username;
 
-    if(book) {
+    if(books[isbn]) {
         if(review) {
             bookReview[username] = review;
-            
-            res.send.json({message: "Review submitted successfully!", review: bookReview});
+            return res.send.json({message: "Review submitted successfully!", review: bookReview});
         } else {
-            res.status(400).json({message: "Review must be provided"});
+            return res.status(400).send("Review must be provided");
         }
 
     } else {
-        res.status(404).json({message: "Book not found"});
+        return res.status(404).send("Book not found");
     }
 
 });
