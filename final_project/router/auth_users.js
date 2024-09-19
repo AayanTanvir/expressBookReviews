@@ -41,7 +41,7 @@ regd_users.post("/login", (req,res) => {
     if(username && password) {
         let user = authenticatedUser(username, password);
         if(user){
-            const accessToken = jwt.sign({data: password}, 'access', {expiresIn: 60 * 60});
+            const accessToken = jwt.sign({data: password}, "access", {expiresIn: 60 * 60});
             req.session.authorization = {
                 accessToken,
                 username
@@ -62,12 +62,12 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     const isbn = req.params.isbn;
     const bookReview = books[isbn].reviews;
     const review = req.query.review;
-    const username = req.user.username;
+    const username = req.session.authorization.username;
 
     if(books[isbn]) {
         if(review) {
             bookReview[username] = review;
-            return res.send.json({message: "Review submitted successfully!", review: bookReview});
+            return res.send(JSON.stringify({message: "Review submitted successfully!", bookReview}));
         } else {
             return res.status(400).send("Review must be provided");
         }
